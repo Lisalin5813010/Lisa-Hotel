@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lisa Hotel | 登录</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    header a {
+      text-decoration: none;
+      font-size: 18px;
+      color: #3498db;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      border-left: 6px solid #3498db;
+      padding-left: 10px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #3498db;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+
+    .message {
+      color: red;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .logout-msg {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/">🏠 返回首页</a>
+</header>
+
+<h1>登录 Landon Hotel</h1>
+
+<div id="error-msg" class="message" th:if="${param.error}">
+  用户名或密码错误
+</div>
+<div id="logout-msg" class="message logout-msg" th:if="${param.logout}">
+  您已成功登出
+</div>
+
+<form id="loginForm" th:action="@{/login}" method="post">
+  <label for="username">用户名:
+    <input type="text" id="username" name="username" required />
+  </label>
+
+  <label for="password">密码:
+    <input type="password" id="password" name="password" required />
+  </label>
+
+  <input type="submit" value="登录">
+</form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("loginForm");
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem("jwtToken", data.token);
+          alert("登录成功！");
+          window.location.href = "/";
+        } else {
+          alert("登录失败，请检查用户名和密码！");
+        }
+      } catch (error) {
+        console.error("登录出错：", error);
+        alert("系统错误，请稍后再试！");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

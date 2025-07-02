@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisa Hotel | 房间信息</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        header a {
+            text-decoration: none;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        header form input[type="submit"] {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        header form input[type="submit"]:hover {
+            background-color: #c0392b;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            border-left: 6px solid #3498db;
+            padding-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f1f9ff;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="/static">🏠 返回首页</a>
+    <form action="/logout" method="post">
+        <input type="submit" value="退出登录">
+    </form>
+</header>
+
+<h2>房间信息</h2>
+<div id="room-container">
+    <table id="room-table" class="hidden">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>房间名</th>
+            <th>房间号</th>
+            <th>床位信息</th>
+        </tr>
+        </thead>
+        <tbody id="room-body">
+        <!-- JS 动态插入 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const token = localStorage.getItem("jwtToken");
+
+        if (!token) {
+            alert("您尚未登录或登录信息已过期。");
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/protected/rooms", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.ok) {
+                const rooms = await response.json();
+                const tableBody = document.getElementById("room-body");
+                const table = document.getElementById("room-table");
+                table.classList.remove("hidden");
+
+                rooms.forEach(room => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+            <td>${room.roomId}</td>
+            <td>${room.name}</td>
+            <td>${room.number}</td>
+            <td>${room.info}</td>
+          `;
+                    tableBody.appendChild(row);
+                });
+
+            } else if (response.status === 403 || response.status === 401) {
+                alert("登录已过期，请重新登录。");
+                localStorage.removeItem("jwtToken");
+                window.location.href = "/login";
+            } else {
+                alert("获取房间信息失败，请稍后再试。");
+            }
+        } catch (err) {
+            console.error("网络错误:", err);
+            alert("系统异常，请稍后重试。");
+        }
+    });
+</script>
+
+</body>
+</html>

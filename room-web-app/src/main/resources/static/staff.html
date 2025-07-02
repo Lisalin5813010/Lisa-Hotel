@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lisa Hotel | Staff</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #2c3e50;
+      border-left: 6px solid #3498db;
+      padding-left: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    a {
+      text-decoration: none;
+      color: #3498db;
+      font-weight: bold;
+    }
+
+    input[type="submit"] {
+      background-color: #e74c3c;
+      border: none;
+      padding: 8px 16px;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/">Home</a>
+  <form action="/logout" method="post">
+    <input type="submit" value="Sign Out">
+  </form>
+</header>
+
+<h2>员工信息</h2>
+<div id="staff-container">
+  <table id="staff-table" style="display: none;">
+    <thead>
+    <tr>
+      <th>员工编号</th>
+      <th>名</th>
+      <th>姓</th>
+      <th>职位</th>
+    </tr>
+    </thead>
+    <tbody id="staff-body">
+    <!-- JS 动态插入 -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const token = localStorage.getItem("jwtToken");
+
+    if (!token) {
+      alert("您尚未登录或登录信息已过期。");
+      window.location.href = "/login";
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/protected/staff", {
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        const staffList = await response.json();
+        const tableBody = document.getElementById("staff-body");
+        const table = document.getElementById("staff-table");
+        table.style.display = "table";
+
+        staffList.forEach(staff => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${staff.id}</td>
+            <td>${staff.firstName}</td>
+            <td>${staff.lastName}</td>
+            <td>${staff.position}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+      } else if (response.status === 403 || response.status === 401) {
+        alert("登录已过期，请重新登录。");
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/login";
+      } else {
+        alert("获取员工信息失败，请稍后再试。");
+      }
+    } catch (err) {
+      console.error("网络错误:", err);
+      alert("系统异常，请稍后重试。");
+    }
+  });
+</script>
+
+</body>
+</html>
